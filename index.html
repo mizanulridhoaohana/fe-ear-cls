@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ear Classification Analyzer</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>🩺 Otoscopy Ear Classification</h1>
+    <p class="subtitle">Upload gambar telinga untuk klasifikasi otomatis</p>
+
+    <div id="upload-section">
+      <div class="upload-area" id="upload-area">
+        <label for="file-input" class="file-input-label">
+          <span class="upload-icon">📸</span>
+          <span class="upload-text">Klik atau drop gambar di sini</span>
+          <span class="upload-hint">Format: JPG, PNG</span>
+        </label>
+        <input type="file" id="file-input" accept="image/*" />
+      </div>
+      <button id="process-btn" class="primary-button" disabled>Proses Gambar</button>
+    </div>
+
+    <div class="content-wrapper">
+      <div id="preview-container">
+        <div class="image-container">
+          <h3>Gambar Asli</h3>
+          <img id="preview" alt="Preview" style="display:none;" />
+        </div>
+      </div>
+
+      <div id="result-card" class="card" style="display:none;">
+        <h2>📊 Hasil Klasifikasi</h2>
+
+        <div class="classification-box">
+          <span class="label">Diagnosis</span>
+          <div id="diagnosis" class="diagnosis-value">-</div>
+        </div>
+
+        <div class="classification-box">
+          <span class="label">Probabilitas per Kelas</span>
+          <pre id="probabilities" class="probabilities-box">-</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@gradio/client@2.1.0/dist/index.js"></script>
+  <script src="script.js" type="module"></script>
+</body>
+</html>
