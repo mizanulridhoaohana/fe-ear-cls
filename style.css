@@ -183,16 +183,54 @@ h1 {
 }
 
 .probabilities-box {
-  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
   white-space: pre-wrap;
-  font-family: "Inter", sans-serif;
   font-size: 1rem;
   color: #2d3748;
-  line-height: 1.7;
-  background: #f8fafc;
-  padding: 0.8rem 1rem;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+}
+
+.prob-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+}
+
+.prob-value {
+  font-variant-numeric: tabular-nums;
+  color: #4a5568;
+}
+
+.prob-track {
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.prob-fill {
+  width: 0;
+  height: 100%;
+  background: #a0aec0;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.prob-row.top .prob-fill {
+  background: var(--primary-color);
+}
+
+.prob-row.top .prob-header {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.action-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
 }
 
 @media (max-width: 768px) {

@@ -1,4 +1,4 @@
-import { Client } from "https://esm.sh/@gradio/client";
+import { Client, handle_file } from "https://esm.sh/@gradio/client";
 
 const GRADIO_SPACE = "xBeLQ/be-ear-cls";
 
@@ -11,18 +11,23 @@ const diagnosisEl = document.getElementById("diagnosis");
 const probabilityEl = document.getElementById("probabilities");
 
 let selectedFile = null;
-let client = null;
+let clientPromise = null;
 
-async function initGradio() {
-  try {
-    client = await Client.connect(GRADIO_SPACE);
-    console.log("✅ Gradio client ready");
-  } catch (err) {
-    console.error("❌ Gagal konek ke Gradio Space:", err);
-    alert("Gagal terhubung ke Hugging Face Space. Coba refresh halaman.");
+function getClient() {
+  if (!clientPromise) {
+    clientPromise = Client.connect(GRADIO_SPACE)
+      .then((client) => {
+        console.log("✅ Gradio client ready");
+        return client;
+      })
+      .catch((err) => {
+        clientPromise = null;
+        throw err;
+      });
   }
+  return clientPromise;
 }
-initGradio();
+getClient().catch((err) => console.error("❌ Gagal konek ke Gradio Space:", err));
 
 fileInput.addEventListener("change", (e) => {
   const file = e.target.files[0];
@@ -64,6 +69,64 @@ function handleFile(file) {
   reader.readAsDataURL(file);
 }
 
+function renderProbabilities(text) {
+  const rows = String(text)
+    .split("\n")
+    .map((line) => line.match(/^\s*-?\s*(.+?):\s*([\d.]+)\s*%/))
+    .filter(Boolean)
+    .map(([, name, value]) => ({ name, value: parseFloat(value) }));
+
+  probabilityEl.innerHTML = "";
+  if (!rows.length) {
+    probabilityEl.textContent = text;
+    return;
+  }
+
+  const max = Math.max(...rows.map((r) => r.value));
+  for (const { name, value } of rows) {
+    const row = document.createElement("div");
+    row.className = "prob-row" + (value === max ? " top" : "");
+
+    const header = document.createElement("div");
+    header.className = "prob-header";
+    const nameEl = document.createElement("span");
+    nameEl.textContent = name;
+    const valueEl = document.createElement("span");
+    valueEl.className = "prob-value";
+    valueEl.textContent = `${value.toFixed(2)}%`;
+    header.append(nameEl, valueEl);
+
+    const track = document.createElement("div");
+    track.className = "prob-track";
+    track.setAttribute("role", "progressbar");
+    track.setAttribute("aria-label", name);
+    track.setAttribute("aria-valuemin", "0");
+    track.setAttribute("aria-valuemax", "100");
+    track.setAttribute("aria-valuenow", value.toFixed(2));
+    const fill = document.createElement("div");
+    fill.className = "prob-fill";
+    track.append(fill);
+
+    row.append(header, track);
+    probabilityEl.append(row);
+    requestAnimationFrame(() => {
+      fill.style.width = `${Math.min(value, 100)}%`;
+    });
+  }
+}
+
+function describeError(err) {
+  const title = err?.title ?? "";
+  const message = err?.message ?? "";
+  if (/quota/i.test(title) || /quota|runs limit/i.test(message)) {
+    return "Kuota GPU gratis Hugging Face (ZeroGPU) sudah habis untuk koneksi ini. Coba lagi nanti setelah kuota direset.";
+  }
+  if (message) {
+    return `Gagal memproses gambar: ${message}`;
+  }
+  return "Gagal memproses gambar. Coba lagi.";
+}
+
 processBtn.addEventListener("click", async () => {
   if (!selectedFile) {
     alert("Silakan pilih gambar terlebih dahulu!");
@@ -74,7 +137,10 @@ processBtn.addEventListener("click", async () => {
   processBtn.disabled = true;
 
   try {
-    const result = await client.predict("/predict", { image: selectedFile });
+    const client = await getClient();
+    const result = await client.predict("/predict_image", {
+      image: handle_file(selectedFile),
+    });
     console.log("API Response:", result);
 
     const data = result?.data ?? [];
@@ -82,11 +148,11 @@ processBtn.addEventListener("click", async () => {
     const probabilities = data[1] ?? "-";
 
     diagnosisEl.textContent = diagnosis;
-    probabilityEl.textContent = probabilities;
+    renderProbabilities(probabilities);
     resultCard.style.display = "block";
   } catch (err) {
     console.error(err);
-    alert("Gagal memproses gambar. Coba lagi.");
+    alert(describeError(err));
   } finally {
     processBtn.textContent = "Proses Gambar";
     processBtn.disabled = false;

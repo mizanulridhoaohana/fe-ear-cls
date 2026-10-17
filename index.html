@@ -21,7 +21,6 @@
         </label>
         <input type="file" id="file-input" accept="image/*" />
       </div>
-      <button id="process-btn" class="primary-button" disabled>Proses Gambar</button>
     </div>
 
     <div class="content-wrapper">
@@ -42,13 +41,16 @@
 
         <div class="classification-box">
           <span class="label">Probabilitas per Kelas</span>
-          <pre id="probabilities" class="probabilities-box">-</pre>
+          <div id="probabilities" class="probabilities-box">-</div>
         </div>
       </div>
     </div>
+
+    <div class="action-section">
+      <button id="process-btn" class="primary-button" disabled>Proses Gambar</button>
+    </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@gradio/client@2.1.0/dist/index.js"></script>
   <script src="script.js" type="module"></script>
 </body>
 </html>
